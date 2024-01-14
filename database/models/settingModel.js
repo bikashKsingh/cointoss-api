@@ -24,6 +24,16 @@ const modelSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    supportWhatsapp: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    officeAddress: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     facebook: {
       type: String,
       default: "",

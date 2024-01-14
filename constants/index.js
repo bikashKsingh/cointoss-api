@@ -268,6 +268,19 @@ module.exports = {
     SUBSCRIPTION_HISTORY_NOT_FOUND: "Subscription not Found!",
     SUBSCRIPTION_HISTORY_ERROR: "OOPS Error with Subscription!",
   },
+  walletTransactionHistoryMessage: {
+    WALLET_TRANSACTION_CREATED: "Wallet Transaction created!",
+    WALLET_TRANSACTION_NOT_CREATED: "Oops ! Wallet Transaction not created!",
+
+    WALLET_TRANSACTION_DELETED: "Wallet Transaction Deleted Successfully!",
+    WALLET_TRANSACTION_NOT_DELETED: "Wallet Transaction not Deleted!",
+
+    WALLET_TRANSACTION_FETCHED: "Wallet Transaction Fetched Successfully!",
+    WALLET_TRANSACTION_NOT_FETCHED: "Wallet Transaction not Fetched!",
+
+    WALLET_TRANSACTION_NOT_FOUND: "Wallet Transaction not Found!",
+    WALLET_TRANSACTION_ERROR: "OOPS Error with Wallet Transaction!",
+  },
 
   orderMessage: {
     ORDER_CREATED: "Order Created Successfully!",

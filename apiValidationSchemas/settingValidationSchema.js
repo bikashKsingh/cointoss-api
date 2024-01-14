@@ -12,6 +12,11 @@ module.exports.createSetting = Joi.object({
     .regex(/^[6-9]\d{9}$/)
     .allow("")
     .label("Support Mobile"),
+  supportWhatsapp: Joi.string()
+    .regex(/^[6-9]\d{9}$/)
+    .allow("")
+    .label("Support WhatsApp"),
+  officeAddress: Joi.number().allow("").label("Office Address"),
   facebook: Joi.string().uri().allow("").label("Facebook"),
   twitter: Joi.string().uri().allow("").label("Twitter"),
   instagram: Joi.string().uri().allow("").label("Instagram"),
