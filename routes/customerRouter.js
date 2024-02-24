@@ -19,6 +19,13 @@ router.post(
   customerController.verifyAccount
 );
 
+// resendOTP
+router.post(
+  "/resendOTP",
+  joiSchemaValidation.validateBody(customerValidationSchema.resendOTP),
+  customerController.resendOTP
+);
+
 // loginCustomer
 router.post(
   "/login",
@@ -45,6 +52,16 @@ router.get(
   "/profile",
   jwtValidation.validateCustomerToken,
   customerController.getProfile
+);
+
+// myReferrals
+router.get(
+  "/myReferrals",
+  joiSchemaValidation.validateQuery(
+    customerValidationSchema.getCustomerReferrals
+  ),
+  jwtValidation.validateCustomerToken,
+  customerController.getCustomerReferrals
 );
 
 // createNewPassword

@@ -7,6 +7,9 @@ module.exports.createSetting = Joi.object({
     .label("Minimum withdrawal amount"),
   referralAmount: Joi.number().allow("").label("Referral amount"),
   referredAmount: Joi.number().allow("").label("Referred amount"),
+  gameResult: Joi.string()
+    .valid("ALWAYS_HEAD", "ALWAYS_TAIL", "RANDOM")
+    .label("Game Result"),
   supportEmail: Joi.string().email().allow("").label("Support Email"),
   supportMobile: Joi.string()
     .regex(/^[6-9]\d{9}$/)

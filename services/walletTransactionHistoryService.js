@@ -1,7 +1,8 @@
 const walletTransactionHistoryModel = require("../database/models/walletTransactionHistoryModel");
 const constants = require("../constants");
 const dbHelpers = require("../helpers/dbHelper");
-
+const customerModel = require("../database/models/customerModel");
+const wsHelpers = require("../helpers/wsHelpers");
 /*
  ******************************
  ********CUSTOMER BLOCK********
@@ -11,9 +12,12 @@ const dbHelpers = require("../helpers/dbHelper");
 // createWalletTransaction
 module.exports.createWalletTransaction = async (serviceData) => {
   try {
+    serviceData.description = "User Added Amount";
+    serviceData.transactionType = dbHelpers.transactionType.DEPOSIT_REQUEST;
     const newData = new walletTransactionHistoryModel(serviceData);
     const result = await newData.save();
     if (result) {
+      wsHelpers.emitNewEvent("transactionAdded", result._id);
       return dbHelpers.formatMongoData(result);
     } else {
       throw new Error(
@@ -29,10 +33,63 @@ module.exports.createWalletTransaction = async (serviceData) => {
   }
 };
 
+// createWithdrawalRequest
+module.exports.createWithdrawalRequest = async (serviceData) => {
+  try {
+    // get customer details
+    const customerDetails = await customerModel.findOne({
+      _id: serviceData.customer,
+    });
+    const walletAmount = customerDetails.wallet;
+    if (walletAmount < serviceData.amount) {
+      throw new Error("You have not sufficient amount");
+    }
+
+    serviceData.transactionType = "WITHDRAWAL_REQUEST";
+    const newData = new walletTransactionHistoryModel(serviceData);
+    const result = await newData.save();
+
+    if (result) {
+      // withdrawal money from the wallet
+      const afterWithdrawalWalletAmount = walletAmount - serviceData.amount;
+
+      // update wallet amount
+      const updateWalletAmount = await customerModel.findByIdAndUpdate(
+        serviceData.customer,
+        {
+          wallet: afterWithdrawalWalletAmount,
+        }
+      );
+
+      wsHelpers.emitNewEvent(
+        wsHelpers.events.WITHDRAWAL_REQUEST_CREATED,
+        result._id
+      );
+      return dbHelpers.formatMongoData(result);
+    } else {
+      throw new Error(
+        constants.walletTransactionHistoryMessage.WITHDRAWAL_REQUEST_CREATED
+      );
+    }
+  } catch (error) {
+    console.log(
+      `Somthing Went Wrong Service: walletTransactionHistoryService:  createWithdrawalRequest`,
+      error.message
+    );
+    throw new Error(error);
+  }
+};
+
 // getCustomerWalletTransactions
 module.exports.getCustomerWalletTransactions = async (serviceData) => {
   try {
-    const { limit = 10, page = 1, transactionType } = serviceData;
+    const {
+      limit = 10,
+      page = 1,
+      transactionType,
+      transactionTypes = [],
+    } = serviceData;
+
     let conditions = {
       customer: serviceData.customerId,
     };
@@ -40,6 +97,11 @@ module.exports.getCustomerWalletTransactions = async (serviceData) => {
     // Check Subscription Status
     if (transactionType) conditions.transactionType = transactionType;
     if (transactionType == "All") delete conditions.transactionType;
+
+    // transactionTypes
+    if (transactionTypes.length) {
+      conditions.transactionType = { $in: transactionTypes };
+    }
 
     // count record
     const totalRecords = await walletTransactionHistoryModel.countDocuments(
@@ -147,7 +209,7 @@ module.exports.getAllWalletTransactions = async (serviceData) => {
     limit = 10,
     page = 1,
     isDeleted = false,
-    transactionType,
+    transactionType = "All",
     customer,
   } = serviceData;
 
@@ -169,9 +231,9 @@ module.exports.getAllWalletTransactions = async (serviceData) => {
     const result = await walletTransactionHistoryModel
       .find(conditions)
       .limit(parseInt(limit))
-      .populate({ path: "customer", select: "firstName" })
+      .populate({ path: "customer", select: "firstName lastName" })
       .skip((parseInt(page) - 1) * parseInt(limit))
-      .sort({ createdAt: -1 });
+      .sort({ _id: -1 });
 
     if (result) {
       const res = {
@@ -189,6 +251,45 @@ module.exports.getAllWalletTransactions = async (serviceData) => {
   } catch (error) {
     console.log(
       `Somthing Went Wrong Service: walletTransactionHistoryService: getAllWalletTransactions`,
+      error.message
+    );
+    throw new Error(error);
+  }
+};
+
+// updateWalletTransaction
+module.exports.updateWalletTransaction = async (serviceData) => {
+  try {
+    const { id, body } = serviceData;
+
+    if (body.transactionType === "DEPOSIT") {
+      // get transaction history details
+      const transactionHistory = await walletTransactionHistoryModel.findById(
+        id
+      );
+
+      // get customer details
+      const customerDetails = await customerModel.findById(
+        transactionHistory.customer
+      );
+
+      // update wallet amount
+      const updateWallet = await customerModel.findOneAndUpdate(
+        { _id: customerDetails._id },
+        { wallet: customerDetails.wallet + transactionHistory.amount },
+        { new: true }
+      );
+    }
+
+    const result = await walletTransactionHistoryModel.findByIdAndUpdate(
+      id,
+      body,
+      { new: true }
+    );
+    return dbHelpers.formatMongoData(result);
+  } catch (error) {
+    console.log(
+      `Somthing Went Wrong Service: walletTransactionHistoryService: updateWalletTransaction`,
       error.message
     );
     throw new Error(error);

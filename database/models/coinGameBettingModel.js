@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const dbHelper = require("../../helpers/dbHelper");
 const modelSchema = new mongoose.Schema(
   {
     customer: {
@@ -8,23 +7,31 @@ const modelSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    transactionType: {
-      type: String,
-      enum: Object.keys(dbHelper.transactionType),
-      default: dbHelper.defaultTransactionType,
+    coinGame: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "coinGame",
+      required: true,
       trim: true,
     },
-    utrNumber: {
+    bettingCoin: {
       type: String,
-      default: "",
+      enum: ["HEAD", "TAIL"],
+      trim: true,
+      required: true,
+    },
+    bettingStatus: {
+      type: String,
+      enum: ["PENDING", "ACCEPTED", "REJECTED", "FAILED"],
+      default: "PENDING",
       trim: true,
     },
-    screenshot: {
+    gameResult: {
       type: String,
-      default: "",
+      enum: ["PENDING", "HEAD", "TAIL"],
+      default: "PENDING",
       trim: true,
     },
-    amount: {
+    bettingAmount: {
       type: Number,
       required: true,
     },
@@ -56,4 +63,4 @@ const modelSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("walletTransactionHistory", modelSchema);
+module.exports = mongoose.model("coinGameBetting", modelSchema);

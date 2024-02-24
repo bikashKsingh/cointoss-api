@@ -24,6 +24,11 @@ module.exports.verifyAccount = Joi.object({
   otp: Joi.number().required(),
 });
 
+// resendOTP
+module.exports.resendOTP = Joi.object({
+  email: Joi.string().email().trim().required(),
+});
+
 // loginCustomer
 module.exports.loginCustomer = Joi.object({
   email: Joi.string().email().trim().required(),
@@ -32,6 +37,16 @@ module.exports.loginCustomer = Joi.object({
 
 // getAllCustomers
 module.exports.getAllCustomers = Joi.object({
+  page: Joi.string(),
+  limit: Joi.string(),
+  status: Joi.string().optional(),
+  isDeleted: Joi.boolean().optional(),
+  searchQuery: Joi.string(),
+  isVerified: Joi.string(),
+});
+
+// getCustomerReferrals
+module.exports.getCustomerReferrals = Joi.object({
   page: Joi.string(),
   limit: Joi.string(),
   status: Joi.string().optional(),
@@ -51,8 +66,8 @@ module.exports.updateProfile = Joi.object({
   lastName: Joi.string().trim(),
   mobile: Joi.string().trim().min(10),
   email: Joi.string().email().trim(),
-  password: Joi.string().min(6).trim(),
-  oldPassword: Joi.string().min(6).trim(),
+  password: Joi.string().allow("").min(6).trim(),
+  oldPassword: Joi.string().allow("").min(6).trim(),
   address: Joi.string().trim().allow("").label("Address"),
   landmark: Joi.string().trim().allow("").label("Landmark"),
   locality: Joi.string().trim().allow("").label("Locality"),

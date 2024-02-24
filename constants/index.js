@@ -171,6 +171,45 @@ module.exports = {
     NEWSLETTER_NOT_FOUND: "Newsletter not Found!",
     NEWSLETTER_ERROR: "OOPS Error with Newsletter !",
   },
+  coinGameMessage: {
+    COIN_GAME_CREATED: "Coin Game Created Successfully!",
+    COIN_GAME_ALREADY_EXIST: "Email Already Exists!",
+    COIN_GAME_NOT_CREATED: "Coin Game not Created!",
+    COIN_GAME_UPDATED: "Coin Game Updated Successfully !",
+    COIN_GAME_NOT_UPDATED: "Coin Game not Updated!",
+    COIN_GAME_DELETED: "Coin Game Deleted Successfully!",
+    COIN_GAME_NOT_DELETED: "Coin Game not Deleted!",
+    COIN_GAME_FETCHED: "Coin Game Fetched Successfully!",
+    COIN_GAME_NOT_FETCHED: "Coin Game not Fetched!",
+    COIN_GAME_NOT_FOUND: "Coin Game not Found!",
+    COIN_GAME_ERROR: "OOPS Error with Coin Game !",
+  },
+  coinGameMessage: {
+    COIN_GAME_CREATED: "Coin Game Created Successfully!",
+    COIN_GAME_ALREADY_EXIST: "Coin Game Already Exists!",
+    COIN_GAME_NOT_CREATED: "Coin Game not Created!",
+    COIN_GAME_UPDATED: "Coin Game Updated Successfully !",
+    COIN_GAME_NOT_UPDATED: "Coin Game not Updated!",
+    COIN_GAME_DELETED: "Coin Game Deleted Successfully!",
+    COIN_GAME_NOT_DELETED: "Coin Game not Deleted!",
+    COIN_GAME_FETCHED: "Coin Game Fetched Successfully!",
+    COIN_GAME_NOT_FETCHED: "Coin Game not Fetched!",
+    COIN_GAME_NOT_FOUND: "Coin Game not Found!",
+    COIN_GAME_ERROR: "OOPS Error with Coin Game !",
+  },
+  coinGameBettingMessage: {
+    COIN_GAME_BETTING_CREATED: "Coin Game Betting Created Successfully!",
+    COIN_GAME_BETTING_ALREADY_EXIST: "Coin Game Betting Already Exists!",
+    COIN_GAME_BETTING_NOT_CREATED: "Coin Game Betting not Created!",
+    COIN_GAME_BETTING_UPDATED: "Coin Game Betting Updated Successfully !",
+    COIN_GAME_BETTING_NOT_UPDATED: "Coin Game Betting not Updated!",
+    COIN_GAME_BETTING_DELETED: "Coin Game Betting Deleted Successfully!",
+    COIN_GAME_BETTING_NOT_DELETED: "Coin Game Betting not Deleted!",
+    COIN_GAME_BETTING_FETCHED: "Coin Game Betting Fetched Successfully!",
+    COIN_GAME_BETTING_NOT_FETCHED: "Coin Game Betting not Fetched!",
+    COIN_GAME_BETTING_NOT_FOUND: "Coin Game Betting not Found!",
+    COIN_GAME_BETTING_ERROR: "OOPS Error with Coin Game Betting !",
+  },
   mainMenuMessage: {
     MAINMENU_CREATED: "Main Menu Created Successfully!",
     MAINMENU_ALREADY_EXIST: "Main Menu Already Exists!",
@@ -268,9 +307,30 @@ module.exports = {
     SUBSCRIPTION_HISTORY_NOT_FOUND: "Subscription not Found!",
     SUBSCRIPTION_HISTORY_ERROR: "OOPS Error with Subscription!",
   },
+
+  walletMessage: {
+    WALLET_CREATED: "Wallet created!",
+    WALLET_NOT_CREATED: "Oops ! Wallet not created!",
+
+    WALLET_DELETED: "Wallet Deleted Successfully!",
+    WALLET_NOT_DELETED: "Wallet not Deleted!",
+
+    WALLET_FETCHED: "Wallet Fetched Successfully!",
+    WALLET_NOT_FETCHED: "Wallet not Fetched!",
+
+    WALLET_NOT_FOUND: "Wallet not Found!",
+    WALLET_ERROR: "OOPS Error with Wallet!",
+  },
+
   walletTransactionHistoryMessage: {
     WALLET_TRANSACTION_CREATED: "Wallet Transaction created!",
     WALLET_TRANSACTION_NOT_CREATED: "Oops ! Wallet Transaction not created!",
+
+    WITHDRAWAL_REQUEST_CREATED: "Withdrawal Request Created!",
+    WITHDRAWAL_REQUEST_NOT_CREATED: "Withdrawal Request Not Created!!",
+
+    WALLET_TRANSACTION_UPDATED: "Wallet Transaction updated!",
+    WALLET_TRANSACTION_NOT_UPDATED: "Oops ! Wallet Transaction not updated!",
 
     WALLET_TRANSACTION_DELETED: "Wallet Transaction Deleted Successfully!",
     WALLET_TRANSACTION_NOT_DELETED: "Wallet Transaction not Deleted!",

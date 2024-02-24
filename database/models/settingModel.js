@@ -14,6 +14,12 @@ const modelSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    gameResult: {
+      type: String,
+      enum: ["RANDOM", "ALWAYS_HEAD", "ALWAYS_TAIL"],
+      default: "RANDOM",
+    },
+
     supportEmail: {
       type: String,
       default: "",

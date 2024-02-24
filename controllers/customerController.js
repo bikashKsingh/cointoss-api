@@ -52,6 +52,29 @@ module.exports.verifyAccount = async (req, res) => {
   res.status(response.status).send(response);
 };
 
+// resendOTP
+module.exports.resendOTP = async (req, res) => {
+  const response = _.cloneDeep(defaultServerResponse);
+  try {
+    const serviceResponse = await customerService.resendOTP(req.body);
+    if (serviceResponse.status == 200) {
+      response.body = serviceResponse.body;
+      response.status = 200;
+      response.message = serviceResponse.message;
+    } else {
+      response.errors = serviceResponse.errors;
+      response.message = serviceResponse.message;
+    }
+  } catch (error) {
+    console.log(
+      `Somthing Went Wrong Controller: customerController: resendOTP`,
+      error.message
+    );
+    response.message = error.message;
+  }
+  res.status(response.status).send(response);
+};
+
 // loginCustomer
 module.exports.loginCustomer = async (req, res) => {
   const response = _.cloneDeep(defaultServerResponse);
@@ -90,6 +113,34 @@ module.exports.getProfile = async (req, res) => {
   } catch (error) {
     console.log(
       `Somthing Went Wrong Controller: customerController: getProfile`,
+      error.message
+    );
+    response.message = error.message;
+  }
+  res.status(response.status).send(response);
+};
+
+// getCustomerReferrals
+module.exports.getCustomerReferrals = async (req, res) => {
+  const response = _.cloneDeep(defaultServerResponse);
+  try {
+    const serviceResponse = await customerService.getCustomerReferrals({
+      ...req.params,
+      ...req.query,
+    });
+    if (serviceResponse) {
+      response.body = serviceResponse.body;
+      response.page = serviceResponse.page;
+      response.totalRecords = serviceResponse.totalRecords;
+      response.totalPages = serviceResponse.totalPages;
+      response.status = 200;
+      response.message = customerMessage.CUSTOMER_FETCHED;
+    } else {
+      response.message = customerMessage.CUSTOMER_NOT_FETCHED;
+    }
+  } catch (error) {
+    console.log(
+      `Somthing Went Wrong Controller: customerController: getCustomerReferrals`,
       error.message
     );
     response.message = error.message;

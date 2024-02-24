@@ -7,6 +7,7 @@ const smsHelper = require("../helpers/smsHelper");
 const _ = require("lodash");
 const moment = require("moment");
 const settingModel = require("../database/models/settingModel");
+const walletTransactionHistoryModel = require("../database/models/walletTransactionHistoryModel");
 
 // registerCustomer
 module.exports.registerCustomer = async (serviceData) => {
@@ -14,7 +15,7 @@ module.exports.registerCustomer = async (serviceData) => {
   try {
     // Check Email is already exist or not
     const data = await customerModel.findOne({
-      email: serviceData.email,
+      $or: [{ email: serviceData.email }, { mobile: serviceData.mobile }],
     });
 
     if (data) {
@@ -71,20 +72,42 @@ module.exports.registerCustomer = async (serviceData) => {
     serviceData.otp = otp;
     serviceData.otpExpiredAt = otpExpiredAt;
 
-    // If refferal code is available
+    // flag
+    let isUpdatedReferralCustomerWallet = null;
+
+    // If referral code is available
     if (serviceData.referralCode) {
       const setting = await settingModel.findOne().sort({ _id: -1 });
+
       if (setting) {
         const referralAmount = setting.referralAmount;
         const referredAmount = setting.referredAmount;
 
         // Update Refer User Wallet
-        const refferUser = await customerModel.findOne({
-          referralCode: serviceData.referralCode,
+        const referUser = await customerModel.findOne({
+          myReferralCode: serviceData.referralCode,
         });
 
-        await customerModel.findByIdAndUpdate(refferUser._id, {
-          wallet: refferUser.wallet + referralAmount,
+        if (!referUser) {
+          response.errors = {
+            referralCode: "Referral Code is not valid",
+          };
+          return response;
+        }
+
+        isUpdatedReferralCustomerWallet = await customerModel.findByIdAndUpdate(
+          referUser._id,
+          {
+            wallet: referUser.wallet + referralAmount,
+          }
+        );
+
+        // Add Wallet Transaction History For Referral User
+        let transactionHistory = await walletTransactionHistoryModel.create({
+          customer: referUser._id,
+          transactionType: dbHelper.transactionType.REFERRAL_DEPOSIT,
+          description: "Referral Bonus Amount",
+          amount: referralAmount,
         });
 
         serviceData.wallet = referredAmount;
@@ -95,13 +118,23 @@ module.exports.registerCustomer = async (serviceData) => {
     // Generate My Referral Code
     const lastUser = await customerModel.findOne().sort({ _id: -1 });
     if (lastUser) {
-      serviceData.referralCode = lastUser.referralCode + 1;
+      serviceData.myReferralCode = lastUser.myReferralCode + 1;
     } else {
-      serviceData.referralCode = 1001;
+      serviceData.myReferralCode = 1001;
     }
 
     const newData = new customerModel(serviceData);
     const result = await newData.save();
+
+    // Add Wallet Transaction History For New User
+    if (result && isUpdatedReferralCustomerWallet) {
+      await walletTransactionHistoryModel.create({
+        customer: result._id,
+        transactionType: dbHelper.transactionType.REFERRED_DEPOSIT,
+        description: "Referred Bonus Amount",
+        amount: serviceData.wallet,
+      });
+    }
 
     // SEND OTP
     const mailResponse = await smsHelper.sendOTPEmail({
@@ -171,6 +204,61 @@ module.exports.verifyAccount = async (serviceData) => {
     console.log(`Something went wrong Service: customerService: verifyAccount`);
     throw new Error(error.message);
   }
+  return response;
+};
+
+// resendOTP
+module.exports.resendOTP = async (serviceData) => {
+  const response = _.cloneDeep(constants.defaultServerResponse);
+
+  try {
+    // Check Email exist or not
+    const data = await customerModel.findOne({
+      email: serviceData.email,
+    });
+    const otp = smsHelper.createOTP();
+    if (data) {
+      // Send Email
+      const mailResponse = await smsHelper.sendOTPEmail({
+        emailTo: serviceData.email,
+        subject: "Reset Password OTP",
+        name: data.firstName,
+        otp: otp,
+      });
+
+      if (!mailResponse.status) {
+        throw new Error(
+          `Account Found ! But some Error occured ${mailResponse.message}`
+        );
+      }
+
+      // Save OTP To Database
+      const date = moment.utc().toDate();
+      const otpExpiredAt = date.setMinutes(date.getMinutes() + 3);
+
+      const updateData = await customerModel.findByIdAndUpdate(data._id, {
+        otp,
+        otpExpiredAt,
+      });
+
+      if (updateData) {
+        response.body = updateData;
+        response.status = 200;
+        response.message = "OTP send successfully";
+      } else {
+        response.message = "Account Found but OTP Data Not Updated to Table";
+        response.errors.email =
+          "Account Found but OTP Data Not Updated to Table";
+      }
+    } else {
+      response.errors.email = "Oops! Email is invalid";
+      response.message = "Oops! Email is invalid";
+    }
+  } catch (error) {
+    console.log(`Something went wrong Service: customerService: resendOTP`);
+    throw new Error(error.message);
+  }
+
   return response;
 };
 
@@ -259,7 +347,10 @@ module.exports.loginCustomer = async (serviceData) => {
       return response;
     }
   } catch (error) {
-    console.log(`Something went wrong Service: customerService: loginCustomer`);
+    console.log(
+      `Something went wrong Service: customerService: loginCustomer`,
+      error
+    );
     throw new Error(error.message);
   }
 };
@@ -274,12 +365,101 @@ module.exports.getProfile = async (serviceData) => {
     if (result) {
       if (result.isDeleted) throw new Error("Account is deleted permanently");
       if (!result.status) throw new Error("Account is disabled permanently");
-    }
 
-    return dbHelper.formatMongoData(result);
+      const formatedData = dbHelper.formatMongoData(result);
+      // get total referred user
+      const referredUsers = await customerModel.countDocuments({
+        referredByCode: result.myReferralCode,
+      });
+      formatedData.totalReferredUsers = referredUsers;
+
+      return formatedData;
+    } else {
+      throw new Error("Invalid user id");
+    }
   } catch (error) {
     console.log(
       `Somthing Went Wrong Service: customerService: getProfile`,
+      error.message
+    );
+    throw new Error(error);
+  }
+};
+
+// getCustomerReferrals
+module.exports.getCustomerReferrals = async (serviceData) => {
+  try {
+    const customerDetails = await customerModel.findOne({
+      _id: serviceData.customerId,
+    });
+
+    if (customerDetails) {
+      // get myReferralCode
+      let myReferralCode = customerDetails.myReferralCode;
+      let conditions = {};
+      const {
+        limit = 10,
+        page = 1,
+        searchQuery,
+        status = true,
+        isDeleted = false,
+        isVerified = "All",
+      } = serviceData;
+
+      // SearchQuery
+      if (searchQuery) {
+        conditions = {
+          $or: [
+            { firstName: { $regex: searchQuery, $options: "i" } },
+            { lastName: { $regex: searchQuery, $options: "i" } },
+            { mobile: { $regex: searchQuery, $options: "i" } },
+            { email: { $regex: searchQuery, $options: "i" } },
+          ],
+        };
+      }
+
+      conditions.referredByCode = myReferralCode;
+
+      // Status
+      if (status == "All") {
+        delete conditions.status;
+      } else {
+        conditions.status = status;
+      }
+
+      // isVerified
+      if (isVerified == "All") {
+        delete conditions.isVerified;
+      } else {
+        conditions.isVerified = isVerified;
+      }
+
+      // DeletedAccount
+      conditions.isDeleted = isDeleted;
+
+      // count record
+      const totalRecords = await customerModel.countDocuments(conditions);
+      // Calculate the total number of pages
+      const totalPages = Math.ceil(totalRecords / parseInt(limit));
+
+      const result = await customerModel
+        .find(conditions)
+        .skip((parseInt(page) - 1) * parseInt(limit))
+        .limit(parseInt(limit))
+        .sort({ _id: -1 });
+      const res = {
+        body: dbHelper.formatMongoData(result),
+        page,
+        totalPages,
+        totalRecords,
+      };
+      return res;
+    } else {
+      throw new Error("Invalid user id");
+    }
+  } catch (error) {
+    console.log(
+      `Somthing Went Wrong Service: customerService: getCustomerReferrals`,
       error.message
     );
     throw new Error(error);
@@ -319,6 +499,8 @@ module.exports.updateProfile = async (serviceData) => {
         // Profile not found
         throw new Error("Profile not found");
       }
+    } else {
+      delete serviceData.password;
     }
 
     const result = await customerModel.findByIdAndUpdate(customerId, body, {
