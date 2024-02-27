@@ -3,13 +3,14 @@ const mongoose = require("mongoose");
 const cron = require("node-cron");
 const wsHelpers = require("../helpers/wsHelpers");
 const settingModel = require("../database/models/settingModel");
+
 module.exports.createCoinGame = () => {
   cron.schedule("*/1 * * * *", async () => {
     const mongooseState = mongoose.connection.readyState;
     try {
       if (mongooseState == 1) {
         const result = await coinGameService.createCoinGame();
-        console.log("Game created", result._id);
+        console.log("Game created", result.body._id);
         wsHelpers.emitNewEvent("coinGameCreated", result.body);
         setTimeout(() => {
           this.startCoinGame(result.body._id);
@@ -85,6 +86,11 @@ module.exports.endCoinGame = async (gameId) => {
         },
       });
       console.log("Game Ended", result._id);
+
+      // call deleteUnPlayedCoinGame
+      const deletedGames = await coinGameService.deleteUnPlayedCoinGame();
+      console.log("Deleted Games", deletedGames);
+
       wsHelpers.emitNewEvent("coinGameEnded", result);
     }
   } catch (error) {

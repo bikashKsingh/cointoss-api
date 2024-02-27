@@ -46,6 +46,14 @@ router.put(
 
 // deleteCoinGame
 router.delete(
+  "/unPlayedGame",
+  // joiSchemaValidation.validateParams(coinGameValidationSchema.getCoinGameById),
+  // jwtValidation.validateAdminToken,
+  coinGameController.deleteUnPlayedCoinGame
+);
+
+// deleteCoinGame
+router.delete(
   "/:id",
   joiSchemaValidation.validateParams(coinGameValidationSchema.getCoinGameById),
   jwtValidation.validateAdminToken,

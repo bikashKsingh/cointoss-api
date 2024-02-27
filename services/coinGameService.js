@@ -206,3 +206,40 @@ module.exports.deleteCoinGame = async (serviceData) => {
     throw new Error(error);
   }
 };
+
+// deleteUnPlayedCoinGame
+module.exports.deleteUnPlayedCoinGame = async () => {
+  try {
+    const lookupResults = await coinGameModel.aggregate([
+      {
+        $lookup: {
+          from: "coingamebettings",
+          localField: "_id",
+          foreignField: "coinGame",
+          as: "coinGameBettings",
+        },
+      },
+      {
+        $match: {
+          coinGameBettings: [],
+        },
+      },
+    ]);
+
+    // Extract _id values from matched documents
+    const idsToDelete = lookupResults.map((result) => result._id);
+
+    // Delete documents using the extracted _id values
+    const deletionResult = await coinGameModel.deleteMany({
+      _id: { $in: idsToDelete },
+    });
+
+    return deletionResult;
+  } catch (error) {
+    console.log(
+      `Somthing Went Wrong Service: coinGameService: deleteUnPlayedCoinGame`,
+      error.message
+    );
+    throw new Error(error);
+  }
+};

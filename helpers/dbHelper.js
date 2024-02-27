@@ -55,6 +55,7 @@ module.exports.transactionType = {
 
   REFERRAL_DEPOSIT: "REFERRAL_DEPOSIT",
   REFERRED_DEPOSIT: "REFERRED_DEPOSIT",
+  All: "All",
 };
 
 module.exports.defaultTransactionType = this.transactionType.DEPOSIT_REQUEST;

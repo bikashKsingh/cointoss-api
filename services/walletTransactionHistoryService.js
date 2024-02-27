@@ -262,7 +262,12 @@ module.exports.updateWalletTransaction = async (serviceData) => {
   try {
     const { id, body } = serviceData;
 
-    if (body.transactionType === "DEPOSIT") {
+    // WALLET_DEPOSIT || WITHDRAWAL_REQUEST_REJECTED
+    if (
+      body.transactionType === dbHelpers.transactionType.WALLET_DEPOSIT ||
+      body.transactionType ===
+        dbHelpers.transactionType.WITHDRAWAL_REQUEST_REJECTED
+    ) {
       // get transaction history details
       const transactionHistory = await walletTransactionHistoryModel.findById(
         id
@@ -279,6 +284,22 @@ module.exports.updateWalletTransaction = async (serviceData) => {
         { wallet: customerDetails.wallet + transactionHistory.amount },
         { new: true }
       );
+    }
+
+    // WALLET_WITHDRAWAL : DO NOTHING
+    // DEPOSIT_REQUEST_REJECTED : DO NOTHING
+
+    // set description
+    if (
+      body.transactionType ===
+      dbHelpers.transactionType.WITHDRAWAL_REQUEST_REJECTED
+    ) {
+      body.description = "Withdrawal Rejected by Admin";
+    } else if (
+      body.transactionType ===
+      dbHelpers.transactionType.DEPOSIT_REQUEST_REJECTED
+    ) {
+      body.description = "Deposit Rejected by Admin";
     }
 
     const result = await walletTransactionHistoryModel.findByIdAndUpdate(

@@ -141,3 +141,25 @@ module.exports.deleteCoinGame = async (req, res) => {
   }
   res.status(response.status).send(response);
 };
+
+// deleteUnPlayedCoinGame
+module.exports.deleteUnPlayedCoinGame = async (req, res) => {
+  const response = { ...defaultServerResponse };
+  try {
+    const serviceResponse = await coinGameService.deleteUnPlayedCoinGame();
+    if (serviceResponse) {
+      response.body = serviceResponse;
+      response.status = 200;
+      response.message = coinGameMessage.COIN_GAME_DELETED;
+    } else {
+      response.message = coinGameMessage.COIN_GAME_NOT_DELETED;
+    }
+  } catch (error) {
+    console.log(
+      `Somthing Went Wrong Controller: coinGameController: deleteUnPlayedCoinGame`,
+      error.message
+    );
+    response.message = error.message;
+  }
+  res.status(response.status).send(response);
+};

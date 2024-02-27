@@ -29,7 +29,8 @@ module.exports.getAllWalletTransactions = Joi.object({
     transactionType.GAME_DEPOSIT,
     transactionType.GAME_WITHDRAWAL,
     transactionType.REFERRAL_DEPOSIT,
-    transactionType.REFERRED_DEPOSIT
+    transactionType.REFERRED_DEPOSIT,
+    transactionType.All
   ),
   transactionTypes: Joi.array().items(
     Joi.string().valid(
@@ -42,7 +43,8 @@ module.exports.getAllWalletTransactions = Joi.object({
       transactionType.GAME_DEPOSIT,
       transactionType.GAME_WITHDRAWAL,
       transactionType.REFERRAL_DEPOSIT,
-      transactionType.REFERRED_DEPOSIT
+      transactionType.REFERRED_DEPOSIT,
+      transactionType.All
     )
   ),
   customer: Joi.string().custom(customCallback),
@@ -55,5 +57,10 @@ module.exports.getWalletTransactionById = Joi.object({
 
 // updateWalletTransaction
 module.exports.updateWalletTransaction = Joi.object({
-  transactionType: Joi.string().valid("REJECTED", "DEPOSIT"),
+  transactionType: Joi.string().valid(
+    transactionType.WITHDRAWAL_REQUEST_REJECTED,
+    transactionType.DEPOSIT_REQUEST_REJECTED,
+    transactionType.WALLET_WITHDRAWAL,
+    transactionType.WALLET_DEPOSIT
+  ),
 });

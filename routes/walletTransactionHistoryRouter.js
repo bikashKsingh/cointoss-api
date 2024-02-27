@@ -65,7 +65,7 @@ router.get(
   walletTransactionHistoryController.getWalletTransactionById
 );
 
-// getWalletTransactionById
+// updateWalletTransaction
 router.put(
   "/:id",
   joiSchemaValidation.validateParams(
