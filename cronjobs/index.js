@@ -12,12 +12,15 @@ module.exports.createCoinGame = () => {
         const result = await coinGameService.createCoinGame();
         console.log("Game created", result.body._id);
         wsHelpers.emitNewEvent("coinGameCreated", result.body);
+        // End Game
+        setTimeout(() => {
+          this.endCoinGame(result.body._id);
+        }, 30000);
+
+        // Start Game
         setTimeout(() => {
           this.startCoinGame(result.body._id);
         }, 20000);
-        setTimeout(() => {
-          this.endCoinGame(result.body._id);
-        }, 40000);
       }
     } catch (error) {
       console.log("error", error.message);
@@ -51,11 +54,13 @@ module.exports.endCoinGame = async (gameId) => {
       });
 
       let gameResult = "HEAD";
+
       const gameResultDetails = gameDetails.gameResult;
 
       if (gameResultDetails == "PENDING") {
         // get setting
         const settingDetails = await settingModel.findOne({});
+
         const gameResultFromSetting = settingDetails.gameResult;
 
         if (gameResultFromSetting == "HEAD") {
