@@ -22,7 +22,9 @@ module.exports.createCoinGame = () => {
 
         // End Game
         let endTimeout = setTimeout(() => {
+          console.log("Calling game end", result.body._id);
           this.endCoinGame(result.body._id);
+          clearTimeout(endTimeout);
         }, 40000);
       }
     } catch (error) {
@@ -68,7 +70,7 @@ module.exports.endCoinGame = async (gameId) => {
         // get setting
         const settingDetails = await settingModel.findOne({});
 
-        const gameResultFromSetting = settingDetails.gameResult;
+        const gameResultFromSetting = settingDetails?.gameResult;
 
         if (gameResultFromSetting == "HEAD") {
           // calculate game result
